@@ -26,7 +26,24 @@ import * as logger from "firebase-functions/logger";
 // this will be the maximum concurrent request count.
 setGlobalOptions({ maxInstances: 10 });
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+// Simple HTTP function that can be used as a backend endpoint
+export const api = onRequest((request, response) => {
+  logger.info("API request received", {structuredData: true});
+  
+  // Set CORS headers
+  response.set('Access-Control-Allow-Origin', '*');
+  response.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (request.method === 'OPTIONS') {
+    response.status(204).send('');
+    return;
+  }
+  
+  response.send({
+    message: "Hello from Firebase Functions!",
+    timestamp: new Date().toISOString(),
+    method: request.method
+  });
+});
