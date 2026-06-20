@@ -40,6 +40,7 @@ cryptography
 bcrypt
 mcp
 pyotp
+supabase
 qrcode[pil]
 croniter
 pytest

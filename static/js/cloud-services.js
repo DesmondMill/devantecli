@@ -231,47 +231,27 @@ class CloudServicesManager {
     this.showMessage('supabase', 'Testing connection...');
     
     try {
-      // First, try to access the base URL to see if project exists
-      const baseResponse = await fetch(url, {
-        method: 'GET',
+      // Use backend API to test connection
+      const response = await fetch('/api/cloud/supabase/test', {
+        method: 'POST',
         headers: {
-          'apikey': publishableKey
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          url: url,
+          publishableKey: publishableKey
+        })
       });
-      
-      console.log('Base URL response:', {
-        status: baseResponse.status,
-        ok: baseResponse.ok,
-        statusText: baseResponse.statusText
-      });
-      
-      // If base URL works, try the REST API endpoint
-      if (baseResponse.ok || baseResponse.status === 200) {
-        const restResponse = await fetch(`${url}/rest/v1/`, {
-          method: 'GET',
-          headers: {
-            'apikey': publishableKey,
-            'Authorization': `Bearer ${publishableKey}`
-          }
-        });
-        
-        console.log('REST API response:', {
-          status: restResponse.status,
-          ok: restResponse.ok,
-          statusText: restResponse.statusText
-        });
-        
-        if (restResponse.ok || restResponse.status === 200) {
-          this.services.supabase.status = 'success';
-          this.showMessage('supabase', '✓ Connection successful');
-        } else {
-          // Base URL works but REST API doesn't - still consider it successful
-          this.services.supabase.status = 'success';
-          this.showMessage('supabase', '✓ Connection successful (project accessible)');
-        }
+
+      const result = await response.json();
+      console.log('Backend test result:', result);
+
+      if (result.ok) {
+        this.services.supabase.status = 'success';
+        this.showMessage('supabase', `✓ ${result.message}`);
       } else {
         this.services.supabase.status = 'error';
-        this.showMessage('supabase', `✗ Connection failed: ${baseResponse.status} - Check your URL format (should be https://your-project.supabase.co)`, true);
+        this.showMessage('supabase', `✗ ${result.message}`, true);
       }
     } catch (error) {
       console.error('Supabase connection error:', error);
@@ -282,36 +262,57 @@ class CloudServicesManager {
     this.updateStatusIndicator('supabase', this.services.supabase.status);
   }
   
-  saveSupabase() {
+  async saveSupabase() {
     console.log('Saving Supabase settings...');
     try {
       const urlInput = document.getElementById('cloud-supabase-url');
       const keyInput = document.getElementById('cloud-supabase-publishable-key');
       const secretInput = document.getElementById('cloud-supabase-secret-key');
       const dbInput = document.getElementById('cloud-supabase-db-url');
-      
+
       console.log('Input elements found:', {
         url: !!urlInput,
         key: !!keyInput,
         secret: !!secretInput,
         db: !!dbInput
       });
-      
+
       if (urlInput && keyInput && secretInput && dbInput) {
         this.services.supabase.url = urlInput.value;
         this.services.supabase.publishableKey = keyInput.value;
         this.services.supabase.secretKey = secretInput.value;
         this.services.supabase.dbUrl = dbInput.value;
-        
+
         console.log('Supabase settings to save:', {
           url: this.services.supabase.url,
           hasKey: !!this.services.supabase.publishableKey,
           keyLength: this.services.supabase.publishableKey ? this.services.supabase.publishableKey.length : 0
         });
-        
-        this.saveSettings();
-        this.showMessage('supabase', '✓ Settings saved');
-        console.log('Supabase settings saved successfully');
+
+        // Call backend API to configure
+        const response = await fetch('/api/cloud/supabase/configure', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            url: this.services.supabase.url,
+            publishableKey: this.services.supabase.publishableKey,
+            secretKey: this.services.supabase.secretKey,
+            dbUrl: this.services.supabase.dbUrl
+          })
+        });
+
+        const result = await response.json();
+        console.log('Backend configure result:', result);
+
+        if (result.ok) {
+          this.saveSettings(); // Still save to localStorage as backup
+          this.showMessage('supabase', `✓ ${result.message}`);
+          console.log('Supabase settings saved successfully');
+        } else {
+          this.showMessage('supabase', `✗ ${result.message}`, true);
+        }
       } else {
         console.error('Some input elements not found');
         this.showMessage('supabase', '✗ Error: Input elements not found', true);
@@ -324,72 +325,94 @@ class CloudServicesManager {
   
   // Railway testing
   async testRailway() {
+    const projectId = document.getElementById('cloud-railway-project-id').value;
     const url = document.getElementById('cloud-railway-url').value;
     const token = document.getElementById('cloud-railway-token').value;
-    
+
     console.log('Railway credentials:', {
+      projectId: projectId,
       url: url,
       hasToken: !!token
     });
-    
+
     if (!url) {
       this.showMessage('railway', 'Please enter Railway Service URL', true);
       return;
     }
-    
+
     this.updateStatusIndicator('railway', 'testing');
     this.showMessage('railway', 'Testing connection...');
-    
+
     try {
-      // Check if URL format looks correct
-      if (url.includes('railway.internal')) {
-        this.services.railway.status = 'error';
-        this.showMessage('railway', '✗ Invalid URL: Use public Railway URL (e.g., https://your-service.up.railway.app)', true);
-        this.updateStatusIndicator('railway', 'error');
-        return;
-      }
-      
-      // Test connection to Railway service
-      const response = await fetch(`${url}/health`, {
-        method: 'GET',
+      // Use backend API to test connection
+      const response = await fetch('/api/cloud/railway/test', {
+        method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : ''
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projectId: projectId,
+          url: url,
+          token: token
+        })
       });
-      
-      console.log('Railway response:', {
-        status: response.status,
-        ok: response.ok
-      });
-      
-      if (response.ok) {
+
+      const result = await response.json();
+      console.log('Backend test result:', result);
+
+      if (result.ok) {
         this.services.railway.status = 'success';
-        this.showMessage('railway', '✓ Connection successful');
+        this.showMessage('railway', `✓ ${result.message}`);
       } else {
         this.services.railway.status = 'error';
-        this.showMessage('railway', `✗ Connection failed: ${response.status}`, true);
+        this.showMessage('railway', `✗ ${result.message}`, true);
       }
     } catch (error) {
       console.error('Railway connection error:', error);
       this.services.railway.status = 'error';
-      
-      // Provide helpful error message based on error type
-      if (error.message.includes('Failed to fetch')) {
-        this.showMessage('railway', '✗ Network error: URL not accessible. Check if service is running and URL is correct', true);
-      } else {
-        this.showMessage('railway', `✗ Connection error: ${error.message}`, true);
-      }
+      this.showMessage('railway', `✗ Connection error: ${error.message}`, true);
     }
-    
+
     this.updateStatusIndicator('railway', this.services.railway.status);
   }
   
-  saveRailway() {
-    this.services.railway.projectId = document.getElementById('cloud-railway-project-id').value;
-    this.services.railway.url = document.getElementById('cloud-railway-url').value;
-    this.services.railway.token = document.getElementById('cloud-railway-token').value;
-    this.saveSettings();
-    this.showMessage('railway', '✓ Settings saved');
+  async saveRailway() {
+    console.log('Saving Railway settings...');
+    try {
+      const projectId = document.getElementById('cloud-railway-project-id').value;
+      const url = document.getElementById('cloud-railway-url').value;
+      const token = document.getElementById('cloud-railway-token').value;
+
+      this.services.railway.projectId = projectId;
+      this.services.railway.url = url;
+      this.services.railway.token = token;
+
+      // Call backend API to configure
+      const response = await fetch('/api/cloud/railway/configure', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projectId: projectId,
+          url: url,
+          token: token
+        })
+      });
+
+      const result = await response.json();
+      console.log('Backend configure result:', result);
+
+      if (result.ok) {
+        this.saveSettings(); // Still save to localStorage as backup
+        this.showMessage('railway', `✓ ${result.message}`);
+      } else {
+        this.showMessage('railway', `✗ ${result.message}`, true);
+      }
+    } catch (error) {
+      console.error('Error saving Railway settings:', error);
+      this.showMessage('railway', `✗ Error: ${error.message}`, true);
+    }
   }
   
   // Vercel testing
