@@ -1,0 +1,857 @@
+# Devante CLI
+
+**Production workspace IDE** · [prometheusource.org](https://prometheusource.org) · [Christopher Bray](https://github.com/chrisbraycodes) · **YARB Industries LLC**
+
+This repository ships **Devante CLI** — a self-hosted AI workspace with production integration and workspace layer — running on top of the upstream self-hosted AI workspace foundation.
+
+## Devante CLI Overview
+
+| | **Devante CLI** | **Prometheus Source** (this project) |
+|---|-------------------------|--------------------------------------|
+| **What it is** | A self-hosted AI workspace: chat with local or API models, agents, tools, memory, email, research, and the core web UI with production workspace IDE integration |
+| **Who made it** | The Devante CLI open-source project and its contributors |
+| **Home / docs** | This README |
+| **This repo** | Complete application, services, and UI (MIT) |
+
+**In one sentence:** **Devante CLI** is the self-hosted AI platform you run. **Prometheus Source** is Christopher Bray’s original work that turns it into a production project IDE on your machine — especially on **Windows + Docker**, where real **PowerShell/CMD**, npm, and Desktop bind mounts matter.
+
+### Core Features
+
+These are the core features of Devante CLI:
+
+- **Chat** — local models, OpenAI-compatible APIs, presets, sessions
+- **Agent** — tool loop, MCP, web/file/shell tools, skills, memory integration
+- **Cookbook** — hardware scan, model download/serve (llmfit-derived)
+- **Deep Research** — multi-step research pipeline (Tongyi-derived)
+- **Compare** — blind multi-model comparison
+- **Documents** — multi-tab editor, markdown/HTML/CSV, AI-assisted edits (outside `/workspace` IDE)
+- **Memory / Skills** — ChromaDB vector memory, skill injection
+- **Email** — IMAP/SMTP inbox and AI triage
+- **Notes & Tasks** — reminders, scheduled agent tasks
+- **Calendar** — CalDAV sync
+- **Core UI** — settings, auth, themes, mobile/PWA shell, landing experience
+
+<sub>Devante CLI · see [ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md)</sub>
+
+### Production Integration Features
+
+Original production integration work in this repository:
+
+- **Workspace IDE** (`/workspace`) — project file tree, workspace editor tabs, integrated xterm.js terminal, dev-server preview, desktop/mobile layout modes, layout persistence
+- **Windows host terminal** — real **PowerShell** or **CMD** on your PC while Devante CLI stays in Docker; consent flow, shell picker, host agent, npm/node routing to the host
+- **Agent workspace tooling** — confined file/shell orchestration, per-workspace chats, project scan/index, plan execution tied to the active folder
+- **Windows deployment** — `start.bat`, `start-host-agent.bat`, `launch-docker.ps1`, host-agent auto-restart, `update_windows.bat`
+- **GPU context benchmark** — VRAM sweep methodology and agent token-budget tuning for *this* deployment ([docs/context-benchmark.md](docs/context-benchmark.md))
+- **Docker workspace mount** — `WORKSPACE_HOST_PATH`, `/workspace` bind-mount contract, host ↔ container path mapping
+
+<sub>Devante CLI Production Integration</sub>
+
+## Devante CLI components
+
+**Creator:** [Christopher Bray](https://github.com/chrisbraycodes) · **YARB Industries LLC** · [prometheusource.org](https://prometheusource.org)
+
+Prometheus Source is Christopher Bray’s workspace-IDE and deployment integration on top of upstream Devante CLI. The name **Prometheus Source** refers to that integration — not to the entire Devante CLI application.
+
+| Area | What it is | Key paths |
+|------|------------|-----------|
+| **Workspace IDE** | In-browser project workspace at `/workspace`: file tree, multi-tab editor, integrated terminal (xterm.js PTY), dev-server preview, Desktop bind-mount support, desktop/mobile layout modes | `static/js/workspaceExplorer.js`, `workspaceTerminal.js`, `workspace.js`, `workspaceSessions.js`, `ideLayoutMode.js`, `document.js` (workspace tabs), `routes/workspace_routes.py`, `routes/terminal_routes.py`, `src/workspace_path.py`, `src/workspace_dev.py`, `src/terminal_manager.py` |
+| **Windows host terminal** | Real **PowerShell** or **CMD** on the Windows host; consent flow; shell picker; host agent auto-restart from `start.bat`; npm/node exec routing to host | `scripts/windows_host_agent.py`, `start-host-agent.bat`, `launch-docker.ps1`, `src/host_agent_client.py`, `src/host_agent_paths.py`, `src/host_terminal_consent.py`, `routes/host_terminal_routes.py`, `static/js/hostTerminal.js` |
+| **Agent workspace tooling** | Confined file/shell tools, shell orchestration, workspace file-create/analyze orchestration, semantic workspace index, per-workspace chat binding, plan execution, and action intents tied to the active workspace folder | `src/tool_execution.py`, `src/shell_orchestration.py`, `src/direct_shell.py`, `src/workspace_file_orchestration.py`, `src/workspace_analyze_orchestration.py`, `src/workspace_index.py`, `src/plan_execution.py`, `src/action_intents.py`, `routes/chat_routes.py` |
+| **Windows deployment** | One-command Docker/native launchers, Windows host agent auto-start, and Docker update helper for this install | `start.bat`, `start-host-agent.bat`, `start-native.bat`, `launch-windows.ps1`, `launch-docker.ps1`, `update_windows.bat` |
+| **Local context benchmark** | GPU VRAM sweep methodology, agent token budgets, and compose tuning for any NVIDIA/AMD card | `docs/context-benchmark.md`, `scripts/find_max_context.py`, `scripts/benchmark_context.py` |
+| **Docker overrides** | Configurable `/workspace` mount, dev-preview port mapping (`WORKSPACE_HOST_PATH` in `.env`) | `docker-compose.yml`, `.env.example` |
+
+**Layout rule (agents & contributors):** on desktop, the file tree, editor, and terminal must never be hidden. See [AGENTS.md](AGENTS.md) and [docs/workspace-ide-layout.md](docs/workspace-ide-layout.md).
+
+### Current state (June 2026)
+
+**Devante CLI** public production release:
+
+| Capability | By | Status |
+|------------|-----|--------|
+| Chat, Agent, Cookbook, Research, Email, Calendar, Memory, core UI | **Devante CLI** | Configured in this deployment |
+| **Workspace IDE** | **Devante CLI** | Production — desktop grid (file tree · editor · terminal · chat), mobile tabs, editor tabs |
+| **Windows host terminal** | **Devante CLI** | Production — **PowerShell** or **CMD** on your PC; shell picker; `start.bat` restarts host agent |
+| **Host agent + npm/node on Windows** | **Devante CLI** | Production — scoped exec on the Windows host |
+| **Per-workspace chats** | **Devante CLI** | Production — chat bound to the active project folder |
+| **Agent workspace orchestration** | **Devante CLI** | Production — file batches, project scan/index, local-LLM tool fixes |
+| **GPU context benchmark docs** | **Devante CLI** | Production — [docs/context-benchmark.md](docs/context-benchmark.md) |
+
+After pulling: run `start.bat` on Windows (or `docker compose up -d --build devante-cli`), hard-refresh the browser, open **`/workspace`**, enable the Windows host terminal from chat if you need npm on your PC.
+
+![Devante CLI workspace IDE with file tree, editor, terminal, and local LLM chat](docs/images/prometheus-source-preview.png)
+
+```
+───────────────────────────────────────────────
+ ⊹ ࣪ ˖ ૮( ˶ᵔ ᵕ ᵔ˶ )っ  Devante CLI vers. 1.0
+───────────────────────────────────────────────
+```
+
+A self-hosted AI workspace -- meant to be the self-hosted version of the UI experience you get from ChatGPT and Claude. But with more jank and fun. Running on your own hardware, with your own data -- local-first, privacy-first, and no trojan.
+
+## AI agent setup (from source)
+
+Instructions for an AI coding agent (or a human following the same steps) to deploy
+this repo from scratch on a new machine. Work through the phases in order; do not
+skip GPU verification if local model serving is required.
+
+### Phase 0 — Preconditions
+
+| Check | Command / action |
+|-------|------------------|
+| Docker + Compose v2 | `docker compose version` |
+| Git | `git --version` |
+| NVIDIA GPU (optional) | `nvidia-smi` on the host |
+| AMD GPU (optional) | `rocm-smi` or `scripts/check-docker-amd-gpu.sh` |
+| Free disk | ≥ 20 GB for images + model cache under `./data/huggingface` |
+| Free RAM | ≥ 16 GB recommended for 7B models + agent tools |
+
+**Do not commit:** `.env`, `data/`, `logs/`, `workspace/*` project files, or
+benchmark JSON under `data/`. They are gitignored.
+
+### Phase 1 — Clone and configure
+
+```bash
+git clone https://github.com/chrisbraycodes/Devante CLI.git
+cd Devante CLI
+cp .env.example .env
+```
+
+Edit `.env` for your machine:
+
+```bash
+# Optional: mount your Desktop or a projects folder as /workspace in the container
+# Windows:  WORKSPACE_HOST_PATH=C:/Users/YOUR_USER/Desktop
+# Linux:    WORKSPACE_HOST_PATH=/home/YOUR_USER/projects
+# Default (works everywhere): WORKSPACE_HOST_PATH=./workspace
+```
+
+The repo ships `workspace/` as an empty default mount. Create subfolders there or
+point `WORKSPACE_HOST_PATH` at an existing directory.
+
+### Phase 2 — Start the Docker stack
+
+**Windows (recommended):** double-click or run from the repo root:
+
+```bat
+start.bat
+```
+
+`start.bat` stops any native instance on the app port, brings up the Docker stack,
+waits until the server responds, and opens your browser. Optional flags:
+
+```bat
+start.bat -Port 7001
+start.bat -NoBrowser
+```
+
+Port defaults to `APP_PORT` in `.env` (7000 if unset). Requires Docker Desktop.
+
+**All platforms (CLI):**
+
+```bash
+docker compose up -d --build
+docker compose ps
+docker compose logs --tail=80 Devante CLI
+```
+
+Wait until `Devante CLI`, `chromadb`, `searxng`, and `ntfy` are running. Open
+`http://127.0.0.1:7000/workspace` (or `http://127.0.0.1:7000`).
+
+**First login:** Devante CLI prints a temporary admin password in the logs:
+
+```bash
+docker compose logs Devante CLI | grep -i password
+```
+
+Log in as `admin` (or `Devante CLI_ADMIN_USER`), then change the password in **Settings**.
+
+Optional extras (PDF viewer, Office extraction; includes AGPL PyMuPDF):
+
+```bash
+docker compose build --build-arg INSTALL_OPTIONAL=true
+docker compose up -d
+```
+
+### Phase 3 — GPU passthrough (NVIDIA or AMD)
+
+Skip if you only use cloud APIs or host Ollama outside Docker without GPU in the
+Devante CLI container.
+
+**NVIDIA** — diagnose, optionally install toolkit, enable overlay:
+
+```bash
+scripts/check-docker-gpu.sh
+scripts/check-docker-gpu.sh --print-install-commands
+# When passthrough works:
+scripts/check-docker-gpu.sh --enable-nvidia-overlay
+docker compose up -d --build
+docker compose exec Devante CLI nvidia-smi -L
+```
+
+**AMD** — read-only diagnostic, then manual `.env`:
+
+```bash
+scripts/check-docker-amd-gpu.sh
+# Add to .env:
+# COMPOSE_FILE=docker-compose.yml:docker/gpu.amd.yml
+# RENDER_GID=<your render group id>
+```
+
+Cookbook **Dependencies** (vLLM, llama-cpp-python, etc.) still must be installed
+inside Devante CLI after passthrough works — passthrough alone does not install CUDA
+userspace.
+
+### Phase 4 — Connect a language model
+
+Pick **one** path:
+
+| Path | Steps |
+|------|-------|
+| **Host Ollama** | `OLLAMA_HOST=0.0.0.0:11434 ollama serve` on host → Settings → add `http://host.docker.internal:11434/v1` |
+| **Cookbook serve** | Cookbook → scan hardware → download model → Serve → endpoint appears in Settings |
+| **External TGI/vLLM** | Run your LLM compose on host port 8000 → Settings → `http://host.docker.internal:8000/v1` |
+
+Verify chat: new session → send a short message → confirm a reply.
+
+### Phase 5 — Benchmark GPU and context limits
+
+The model card may claim 128K context; the **serving stack** and **VRAM** usually
+cap much lower. Tune before relying on Agent mode.
+
+1. **VRAM fit** — Cookbook fit score for your GPU (see [docs/context-benchmark.md](docs/context-benchmark.md))
+2. **Probe live server:**
+
+```bash
+python -m venv venv && source venv/bin/activate   # or venv\Scripts\activate on Windows
+pip install httpx
+python scripts/benchmark_context.py --base-url http://127.0.0.1:8000/v1 --agent-sim
+```
+
+3. **Sweep TGI/vLLM compose limits** (if you control the LLM `docker-compose.yml`):
+
+```bash
+python scripts/find_max_context.py --compose /path/to/your/llm-compose.yml
+```
+
+Edit `CANDIDATES` in `scripts/find_max_context.py` for your VRAM class (8 GB /
+12 GB / 24 GB / 48 GB+). Stop when inference fails or free VRAM drops below ~2 GB.
+
+4. **Apply agent budget** — copy `agent_input_token_budget` from the benchmark
+   output into **Settings** or `data/settings.json`, then:
+
+```bash
+docker compose restart Devante CLI
+```
+
+Full methodology, VRAM tables, RTX 3090 reference numbers, and fork checklist:
+**[docs/context-benchmark.md](docs/context-benchmark.md)**
+
+### Phase 6 — Workspace IDE smoke test
+
+1. Open `http://127.0.0.1:7000/workspace`
+2. **+ → Workspace** → select a folder under `/workspace`
+3. Confirm file tree loads; open a file in the editor
+4. Terminal panel → **Reconnect** if needed → `pwd` should be under `/workspace`
+5. Agent mode + Shell → *List files in this workspace* → confirm tool execution
+
+**Windows Docker note:** use `/workspace/...` paths in prompts, not `C:\...`.
+Scaffold Node projects inside the mount (`npx create-react-app my-app` in the
+workspace terminal) so `node_modules` stays on the volume.
+
+### Phase 7 — Fork / upstream PR hygiene
+
+Before opening a PR to [upstream Devante CLI](https://github.com/pewdiepie-archdaemon/Devante CLI):
+
+- Remove personal paths from `docker-compose.yml` and `.env`
+- Do not include test scaffold projects (e.g. old React test apps) in `workspace/`
+- Do not commit `data/`, `logs/`, `.env`, or local benchmark artifacts
+- Keep Prometheus Source changes scoped to workspace/terminal/GPU docs — see table above
+- Run `git status --short` and confirm only intentional files are staged
+
+### Phase 8 — Native Windows (no Docker)
+
+Double-click or run:
+
+```bat
+start-native.bat
+```
+
+Optional flags:
+
+```bat
+start-native.bat -Port 7000 -BindHost 127.0.0.1
+```
+
+Equivalent PowerShell (what `start-native.bat` calls):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\launch-windows.ps1
+```
+
+**Update an existing Docker deployment** (pull latest code, rebuild, restart):
+
+```bat
+update_windows.bat
+```
+
+Native Windows does not use the `/workspace` Docker mount; pick a workspace folder
+in the UI from any path the server can read.
+
+## Features
+
+Features are labeled by origin. **Devante CLI** = upstream. **Prometheus Source** = Christopher Bray · YARB Industries LLC.
+
+  - **Chat** *(Devante CLI)* — chat with any local model or API; adding them is super simple.<br>　<sub>vLLM · llama.cpp · Ollama · OpenRouter · OpenAI · GitHub Copilot</sub>
+  - **Agent** *(Devante CLI)* — hand it tools and let it run the whole task itself.<br>　<sub>built on [opencode](https://github.com/anomalyco/opencode) · MCP · web · files · shell · skills · memory</sub>
+  - **Cookbook** *(Devante CLI)* — Scans your hardware, recommends models, click to download and serve.. easy!<br>　<sub>built on [llmfit](https://github.com/AlexsJones/llmfit) · VRAM-aware · GGUF / FP8 / AWQ · fit scoring · vLLM / llama.cpp serving</sub>
+  - **Deep Research** *(Devante CLI)* — multi-step runs that gather, read, and synthesize sources into a nice visual report.<br>　<sub>adapted from [Tongyi DeepResearch](https://github.com/Alibaba-NLP/DeepResearch)</sub>
+  - **Compare** *(Devante CLI)* — a fun tool to compare models side by side. Test completely blind, no bias!<br>　<sub>multi-model · blind test · synthesis</sub>
+  - **Prometheus Source (Workspace IDE)** *(Prometheus Source)* — open a project folder and work in a full IDE layout: file tree, editor tabs, terminal, and live dev previews.<br>　<sub>Christopher Bray · YARB Industries LLC · [prometheusource.org](https://prometheusource.org) · `/workspace` · xterm.js · Desktop bind mount</sub>
+  - **Prometheus Source (Windows host terminal)** *(Prometheus Source)* — on Windows Docker, run real **PowerShell** or **CMD** on your PC from the IDE terminal; npm, Vite, and dev servers execute on the host, not inside Linux.<br>　<sub>Christopher Bray · YARB Industries LLC · host agent · consent flow · shell picker</sub>
+  - **Documents** *(Devante CLI)* — YOU write the text, AI is there to assist, not the opposite.<br>　<sub>multi-tab editor · markdown · HTML · CSV · syntax highlighting · AI edits · suggestions</sub>
+  - **Memory / Skills** *(Devante CLI)* — Persistent memory and skills, your agent evolves over time as it better understands you and your tasks!<br>　<sub>ChromaDB · fastembed (ONNX) · vector + keyword retrieval · import/export</sub>
+  - **Email** *(Devante CLI)* — IMAP/SMTP inbox with AI triage built in: urgency reminders, auto-tag, auto-summary, auto-reply drafts, auto-spam.<br>　<sub>IMAP · SMTP · per-account routing · CalDAV-aware</sub>
+  - **Notes & Tasks** *(Devante CLI)* — Quick notes with reminders, a todo list, and scheduled tasks the agent can act on.<br>　<sub>note pings · checklist · cron-style tasks · ntfy / browser / email channels</sub>
+  - **Calendar** *(Devante CLI)* — Local-first calendar with CalDAV sync to Radicale / Nextcloud / Apple / Fastmail.<br>　<sub>CalDAV pull · .ics import/export · per-calendar colors · agent-aware</sub>
+  - **Works on mobile** *(Devante CLI + Prometheus Source layout)* — responsive shell from Devante CLI; workspace mobile tab layout from Prometheus Source.<br>　<sub>responsive · installable (PWA) · touch gestures</sub>
+  - **Extras** *(Devante CLI)* — more to explore, happy if you give it a go!<br>　<sub>image editor · theme editor · file uploads (vision + PDF) · web search · presets · sessions · 2FA</sub>
+
+## Demo
+A full, hover-to-play tour lives on the landing page (`docs/index.html`).
+
+<details>
+<summary>Screenshots / clips</summary>
+
+### Chat & Agents
+![Chat & Agents](docs/chat.gif)
+### Deep Research
+![Deep Research](docs/research.gif)
+### Compare
+![Compare](docs/compare.gif)
+### Documents
+![Documents](docs/document.gif)
+### Notes & Tasks
+![Notes & Tasks](docs/notes.gif)
+
+</details>
+
+## Quick Start
+
+Defaults work out of the box: clone, run, then configure models/search/email
+inside **Settings**. Only edit `.env` for deployment-level overrides like
+`APP_BIND`, `APP_PORT`, `AUTH_ENABLED`, `DATABASE_URL`, or a pre-seeded admin password.
+
+On first setup, Devante CLI creates an admin account (`admin` unless
+`Devante CLI_ADMIN_USER` is set) and prints a temporary password in the terminal.
+For Docker installs, the same line is in `docker compose logs Devante CLI`.
+Use that for the first login, then change it in **Settings**.
+
+Contributing? See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, testing, and
+pull request guidelines.
+
+### Docker (recommended)
+
+**Windows:** after clone and optional `.env` setup, run `start.bat` from the repo
+folder (see [Native Windows](#native-windows) for `start-native.bat` without Docker).
+
+```bash
+git clone https://github.com/chrisbraycodes/Devante CLI.git
+cd Devante CLI
+cp .env.example .env       # optional, but recommended for explicit defaults
+docker compose up -d --build
+```
+To include optional extras in the image (PDF viewer, Office extraction; includes AGPL PyMuPDF), build with `docker compose build --build-arg INSTALL_OPTIONAL=true` before `up`.
+
+Open `http://localhost:7000` when the containers are healthy. Docker Compose
+binds the web UI to `127.0.0.1` by default. If the port is taken, set
+`APP_PORT=7001` in `.env` and recreate the container. Set `APP_BIND=0.0.0.0`
+only when you intentionally want LAN/reverse-proxy access.
+
+### Native Linux / macOS
+```bash
+git clone https://github.com/chrisbraycodes/Devante CLI.git
+cd Devante CLI
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python setup.py
+python -m uvicorn app:app --host 127.0.0.1 --port 7000
+```
+Requirements: Python 3.11+. Cookbook also needs `tmux` for background model
+downloads and serves. The app itself is lightweight; local model serving is the
+heavy part and depends on the model, runtime, GPU, and VRAM, so small hosts can
+connect to API or remote model servers instead. Use `--host 0.0.0.0` only when you intentionally want LAN/reverse-proxy access.
+
+### Apple Silicon
+Docker on macOS cannot use the Metal GPU. For GPU-accelerated Cookbook on an
+M-series Mac, run Devante CLI natively:
+
+```bash
+git clone https://github.com/chrisbraycodes/Devante CLI.git
+cd Devante CLI
+./start-macos.sh
+```
+
+It launches at `http://127.0.0.1:7860`. To expose it to your phone over a trusted LAN/VPN such as Tailscale, bind all interfaces:
+
+```bash
+Devante CLI_HOST=0.0.0.0 ./start-macos.sh
+# then open http://<tailscale-ip>:7860
+```
+
+The script also reads `.env` at startup, so `APP_BIND=0.0.0.0` and `APP_PORT`
+set there are picked up automatically without a command-line override each run.
+
+Keep `AUTH_ENABLED=true` (the default) before binding outside loopback. Do not
+expose this port directly to the public internet. To build a clickable app wrapper:
+
+```bash
+./build-macos-app.sh
+```
+
+<details>
+<summary>Cookbook, GPU, Ollama, and troubleshooting notes</summary>
+
+**Docker bundled services.** Compose starts Devante CLI, ChromaDB, SearXNG, and
+ntfy. Devante CLI and the bundled service ports bind to `127.0.0.1` by default, so
+they are reachable from the host but not exposed to your LAN/public internet
+unless you opt in.
+
+**Cookbook storage in Docker.** Downloads live in `./data/huggingface`
+(`~/.cache/huggingface` in the container). Cookbook-installed Python CLIs and
+serve engines live in `./data/local` (`~/.local` in the container), so they
+survive container recreation.
+
+**Remote servers.** In **Cookbook -> Settings -> Servers**, generate the
+Devante CLI SSH key and add the public key to the remote server's
+`~/.ssh/authorized_keys`. From the host you can also run:
+
+```bash
+ssh-copy-id -i data/ssh/id_ed25519.pub user@server
+```
+
+**Docker GPU overlays.** CPU-only users can skip this section. Cookbook can
+only detect GPUs that Docker exposes to the container — if the host runtime or
+device passthrough is not configured, Cookbook sees the iGPU, another card, or
+CPU instead of your intended GPU.
+
+For NVIDIA, `scripts/check-docker-gpu.sh` diagnoses GPU passthrough and can
+optionally install the host runtime or update `.env`.
+
+```bash
+# Read-only diagnostic (default — installs nothing, never edits .env):
+scripts/check-docker-gpu.sh
+
+# Print OS-specific install commands without running them:
+scripts/check-docker-gpu.sh --print-install-commands
+
+# Install NVIDIA Container Toolkit on Ubuntu/Debian (requires sudo):
+scripts/check-docker-gpu.sh --install-nvidia-toolkit
+
+# Write COMPOSE_FILE to .env (only when GPU passthrough is confirmed working):
+scripts/check-docker-gpu.sh --enable-nvidia-overlay
+
+# Full assisted setup — install toolkit, then enable overlay if passthrough works:
+scripts/check-docker-gpu.sh --install-nvidia-toolkit --enable-nvidia-overlay
+```
+
+Safety notes:
+- The app never installs host GPU runtime automatically.
+- The app never edits `.env` automatically.
+- `.env` is only modified when `--enable-nvidia-overlay` is explicitly passed,
+  and only after GPU passthrough succeeds. `--yes` skips prompts but does not
+  bypass the passthrough gate.
+- `.env.bak.*` backups created by `--enable-nvidia-overlay` are ignored by
+  Git and the Docker build context.
+
+To enable manually without the script, add this to `.env`:
+
+```bash
+COMPOSE_FILE=docker-compose.yml:docker/gpu.nvidia.yml
+```
+
+**AMD / ROCm.** AMD setup is read-only diagnostic plus manual `.env` edit. Run:
+
+```bash
+scripts/check-docker-amd-gpu.sh
+```
+
+Then add the reported values to `.env`, replacing `RENDER_GID` with your host's
+numeric render group id:
+
+```bash
+COMPOSE_FILE=docker-compose.yml:docker/gpu.amd.yml
+RENDER_GID=989
+```
+
+For NVIDIA/AMD GPU support, also read the comments in the selected overlay file: docker/gpu.nvidia.yml or docker/gpu.amd.yml.
+
+**Stack-management UIs (Portainer, Coolify, Dockhand, etc.).** These tools
+often accept only a single Compose file and do not reliably honor `COMPOSE_FILE`
+or multiple `-f` overlays. CLI users should keep using the `COMPOSE_FILE`
+overlay workflow above. For stack UIs, point the stack at one of the standalone
+files instead, which bundle the base stack plus the GPU settings:
+
+- `docker-compose.gpu-nvidia.yml` — still requires the NVIDIA Container Toolkit
+  on the host.
+- `docker-compose.gpu-amd.yml` — still requires host ROCm/kfd/DRI setup, the
+  `video`/`render` group membership, and `RENDER_GID` when needed.
+
+The base `docker-compose.yml` plus the `docker/gpu.*.yml` overlays remain the
+source of truth; the standalone files mirror them for single-file deployments.
+
+Verify after enabling either overlay:
+
+```bash
+docker compose exec Devante CLI nvidia-smi -L   # NVIDIA
+docker compose exec Devante CLI sh -lc 'test -e /dev/kfd && test -d /dev/dri && ls -l /dev/kfd /dev/dri/renderD*'  # AMD
+```
+
+> **GPU passthrough ≠ llama.cpp CUDA.** `nvidia-smi` passing inside the
+> container confirms Docker GPU access, but llama.cpp also needs `cudart` and
+> the CUDA Toolkit at runtime. If Cookbook logs show `Unable to find cudart
+> library`, `Could NOT find CUDAToolkit`, `CUDA Toolkit not found`, or
+> tensors/layers assigned to CPU, that is a Cookbook/llama.cpp build issue —
+> not a Docker passthrough failure. Re-install the serve engine via
+> **Cookbook → Dependencies** to get a CUDA-enabled build.
+>
+> The same split applies to AMD/ROCm: seeing `/dev/kfd` and `/dev/dri` inside
+> the container confirms device passthrough, not ROCm userspace or a
+> ROCm-enabled vLLM/llama.cpp build. `rocm-smi` and `rocminfo` are not expected
+> inside the slim Devante CLI image.
+
+**Ollama with Docker.** If Ollama runs on the host, add this endpoint in
+Settings:
+
+```text
+http://host.docker.internal:11434/v1
+```
+
+Ollama must listen outside its own loopback interface:
+
+```bash
+OLLAMA_HOST=0.0.0.0:11434 ollama serve
+```
+
+This connects Devante CLI in Docker to an Ollama server that is already running on
+your host machine; it does not start Ollama inside the container.
+`host.docker.internal` is Docker's hostname for the host machine from inside the
+container. Cookbook **Serve** is a separate workflow for serving downloaded
+models through Devante CLI/llama.cpp, so Windows users with an existing Ollama
+install usually only need to add the endpoint in Settings.
+
+**Useful checks.**
+
+```bash
+docker compose ps
+docker compose logs --tail=120 Devante CLI
+docker compose logs Devante CLI | grep -E 'ChromaDB|MemoryVectorStore|DEGRADED'
+```
+
+**macOS details.** `start-macos.sh` installs Homebrew deps, creates the venv,
+runs setup, and starts uvicorn on port `7860` because AirPlay often holds
+`7000`. It uses llama.cpp/Ollama for Metal. vLLM/SGLang are CUDA/ROCm-only and
+do not run on macOS. MLX-only models are not served by Devante CLI.
+
+</details>
+
+### Native Windows
+
+> **Prometheus Source** — `start.bat`, `start-host-agent.bat`, `start-native.bat`, `launch-windows.ps1`,
+> `launch-docker.ps1`, `update_windows.bat`, and the Windows host agent are by **Christopher Bray** (**YARB Industries LLC**).
+
+| Script | Use when |
+|--------|----------|
+| `start.bat` | **Docker (recommended on Windows)** — **restarts** the Windows host agent, brings up the Compose stack, waits for the server, opens the browser. Requires Docker Desktop + Python 3 on the host. |
+| `start-host-agent.bat` | **Host agent only** — starts the agent if stopped; use `start-host-agent.bat -Restart` to force-reload after code changes. |
+| `start-native.bat` | **No Docker** — creates the venv, installs deps, runs setup, starts uvicorn. |
+| `update_windows.bat` | Pull latest code and rebuild/restart an existing Docker deployment. |
+
+### Windows host terminal (Prometheus Source)
+
+> Original work by **Christopher Bray** (**YARB Industries LLC**). Not part of upstream Devante CLI.
+
+When Devante CLI runs in **Docker on Windows**, the in-container terminal is Linux. Prometheus Source adds a **Windows host terminal** so npm, Vite, and other dev tools run on your real PC:
+
+1. Set `WORKSPACE_HOST_PATH` in `.env` (e.g. `C:/Users/YOUR_USER/Desktop`).
+2. Run `start.bat` — wait for **Windows host agent ready** (the launcher restarts the agent each run).
+3. Open `/workspace`, pick a project folder, accept the workspace risk prompt.
+4. In chat, click **Enable Windows host terminal** (or use the workspace host-terminal command).
+5. In the **terminal toolbar**, choose **PowerShell** or **CMD**, then click **Reconnect** if you change shells.
+
+**Shell prompts**
+
+| Shell | Typical prompt |
+|-------|----------------|
+| **CMD** | `C:\Users\YOU\Desktop\YourProject>` |
+| **PowerShell** | `PS C:\Users\YOU\Desktop\YourProject>` |
+
+The status bar shows **Connected to Windows host (CMD)** or **(PowerShell)** when the link is live.
+
+**Host agent (local only)**
+
+| Item | Value |
+|------|--------|
+| HTTP | `127.0.0.1:17789` (`/health`, `/v1/exec`) |
+| WebSocket terminal | `127.0.0.1:17790` (`/v1/terminal`) |
+| Token | `WORKSPACE_HOST_AGENT_TOKEN` in `.env` (auto-generated on first `start.bat`) |
+| Logs | `logs/host-agent.log` |
+
+<sub>Prometheus Source · Christopher Bray · YARB Industries LLC</sub>
+
+**Docker (recommended):**
+
+```bat
+git clone https://github.com/chrisbraycodes/Devante CLI.git
+cd Devante CLI
+copy .env.example .env
+start.bat
+```
+
+Optional: `start.bat -Port 7001` or `start.bat -NoBrowser` (port follows `APP_PORT`
+in `.env` when omitted).
+
+**Native (no Docker):**
+
+```bat
+git clone https://github.com/chrisbraycodes/Devante CLI.git
+cd Devante CLI
+start-native.bat
+```
+
+Or the underlying PowerShell launcher (creates the venv, installs deps, runs setup,
+starts the server; safe to re-run):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\launch-windows.ps1
+```
+
+Or do it by hand:
+
+```powershell
+git clone https://github.com/chrisbraycodes/Devante CLI.git
+cd Devante CLI
+py -3.11 -m venv venv
+venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python setup.py
+python -m uvicorn app:app --host 127.0.0.1 --port 7000
+```
+
+If `python` points at an older interpreter, use `py -3.12` (or another installed
+3.11+ version) for the venv step.
+
+**Requirements:** Python 3.11+. The core app (chat, agent, memory, documents,
+email, calendar, deep research) runs fully native. For full **Cookbook** background
+model downloads and the agent shell tool, also install
+[Git for Windows](https://git-scm.com/download/win) (provides `bash.exe`).
+Local GPU *serving* of vLLM/SGLang needs Linux/WSL2; for a local model on Windows,
+[Ollama](https://ollama.com/download) is the easiest path — point Devante CLI at
+`http://localhost:11434/v1` in Settings.
+
+Open `http://localhost:7000`, log in with the generated admin password,
+and configure everything else inside **Settings**.
+
+### GPU and context benchmarking
+
+Scripts and full methodology for fitting models to your GPU and tuning agent token
+budgets: **[docs/context-benchmark.md](docs/context-benchmark.md)**
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/benchmark_context.py` | Probe live server limits; recommend `agent_input_token_budget` |
+| `scripts/find_max_context.py` | Sweep TGI/vLLM compose context levels against VRAM |
+| `scripts/check-docker-gpu.sh` | NVIDIA Docker passthrough diagnostic + overlay helper |
+| `scripts/check-docker-amd-gpu.sh` | AMD ROCm passthrough diagnostic |
+
+Results are written to `data/` (gitignored). A reference RTX 3090 24 GB sweep
+is documented in the guide; adapt `CANDIDATES` in `find_max_context.py` for
+larger or smaller GPUs.
+
+## Troubleshooting & Advanced Setup
+
+### Agent stops responding or hits context errors (local models)
+
+If chat works but **Agent** mode goes silent or the model errors on long prompts, the
+serving stack may cap context far below the model card (common with TGI `--max-total-tokens`
+and VRAM limits). Devante CLI probes TGI `/info` when possible; tune
+`agent_input_token_budget` in Settings or `data/settings.json`.
+
+For a worked example (RTX 3090 eGPU, Qwen2.5-Coder-7B, 16K max stable),
+see **[docs/context-benchmark.md](docs/context-benchmark.md)**. Workspace files
+live under `/workspace` in Docker — set `WORKSPACE_HOST_PATH` in `.env` before
+starting Compose.
+
+### `chromadb-client` conflicts with embedded ChromaDB
+If `chromadb-client` (the lightweight HTTP-only package) is installed alongside the full `chromadb` package, Devante CLI starts but ChromaDB silently falls back to HTTP-only mode and fails.
+
+**Fix:** uninstall `chromadb-client` and force-reinstall the full package:
+```bash
+./venv/bin/pip uninstall chromadb-client -y
+./venv/bin/pip install --force-reinstall chromadb
+```
+
+### HTTPS + LAN/Tailscale exposure
+To expose Devante CLI on a local network or Tailscale with HTTPS:
+1. Change the bind address to `0.0.0.0` in `.env` (`APP_BIND=0.0.0.0` or `Devante CLI_HOST=0.0.0.0`).
+2. Generate a locally-trusted cert for your LAN/Tailscale IPs using [mkcert](https://github.com/FiloSottile/mkcert):
+   ```bash
+   mkcert -install
+   mkcert -cert-file cert.pem -key-file key.pem 192.168.1.100 tailscale-ip
+   ```
+3. Run `uvicorn` with the generated certs:
+   ```bash
+   python -m uvicorn app:app --host 0.0.0.0 --port 7000 --ssl-certfile=cert.pem --ssl-keyfile=key.pem
+   ```
+4. Install the `mkcert` CA on any other device you want to access Devante CLI from (e.g., for iOS, email the `rootCA.pem` to yourself, install the profile, and trust it in Certificate Trust Settings).
+
+### Optional Dependencies
+`requirements-optional.txt` contains packages that unlock extra features. It is not installed by default.
+
+| Package | Feature unlocked |
+|---------|-----------------|
+| `faster-whisper` | Local speech-to-text (microphone -> text) via the "local" STT provider. |
+| `duckduckgo-search` | DuckDuckGo as a search provider option. |
+| `PyMuPDF` | PDF page rendering in the side viewer panel and form-filling. (Note: AGPL-3.0) |
+| `markitdown` | Office/EPUB document text extraction (converts .docx/.xlsx/.pptx/.xls/.epub to Markdown). |
+
+## Security Notes
+Devante CLI is a self-hosted workspace with powerful local tools: shell access, file uploads, model downloads, web research, email/calendar integrations, and API tokens. Treat it like an admin console.
+
+- Keep `AUTH_ENABLED=true` for any network-accessible deployment.
+- Keep `LOCALHOST_BYPASS=false` outside local development.
+- Use `SECURE_COOKIES=true` when Devante CLI is served through HTTPS by a trusted reverse proxy or private access gateway.
+- Do not expose it directly to the public internet without HTTPS and a trusted reverse proxy or private access layer.
+- Keep `.env`, `data/`, `logs/`, databases, uploads, generated media, backups, auth/session files, API keys, and model/provider tokens out of Git and private shares. They are ignored by default.
+- Review `data/auth.json` after first boot: disable open signup unless you intentionally want it, make only your own account admin, and keep demo/test accounts non-admin.
+- Non-admin users do not get shell/Python/file read/write by default, and admin-only routes/tools such as MCP management, API tokens, webhooks, model/cookbook serving, backup/vault, and app settings are admin-gated. Other features are controlled by per-user privileges, so review each user's privileges before exposing a deployment.
+- Rotate any API keys or tokens that were ever pasted into a shared chat, demo, screenshot, or log.
+- If you enable API tokens or webhooks, create separate tokens per integration and delete unused ones.
+- Prefer binding manual development runs to `127.0.0.1`; bind to `0.0.0.0` only when you intentionally want LAN/reverse-proxy access.
+- Keep ChromaDB, SearXNG, ntfy, Ollama, vLLM, llama.cpp, databases, and raw model/provider APIs internal-only. Expose only the authenticated Devante CLI web/API entrypoint through your trusted proxy or private access layer.
+- Before publishing a fork, run `git status --short` and confirm no private files from `.env`, `data/`, `logs/`, uploads, backups, or local databases are staged.
+
+### Private or proxied deployments
+Devante CLI serves plain HTTP on its app port. Docker Compose binds Devante CLI and the bundled services to `127.0.0.1` by default, so a typical production/private setup is:
+
+1. Keep Devante CLI on localhost, for example `127.0.0.1:7000`.
+2. Terminate HTTPS at a trusted reverse proxy or private access gateway.
+3. Put the authenticated Devante CLI web/API entrypoint behind that layer.
+4. Keep raw service and model ports internal-only.
+
+Cloudflare Access, Tailscale, Caddy, nginx, and Traefik can all fit this pattern; none are required by Devante CLI. If your access layer reaches Devante CLI on the same host, proxy to `http://127.0.0.1:7000` and keep `AUTH_ENABLED=true`, `LOCALHOST_BYPASS=false`, and `SECURE_COOKIES=true`.
+
+Common internal-only ports from the default docs/compose setup:
+
+| Port | Service |
+|---|---|
+| `7000` | Devante CLI raw app port |
+| `8080` | SearXNG |
+| `8091` | ntfy |
+| `8100` | ChromaDB host port for manual/compose access |
+| `11434` | Ollama |
+| `8000-8020` | Common local model/provider APIs |
+
+## Contributing
+Help is welcome. The best entry points are fresh-install testing, provider setup
+bugs, mobile/editor polish, docs, and small focused refactors. See
+[ROADMAP.md](ROADMAP.md) for the current help-wanted list.
+
+## Configuration
+Most setup is done inside the app with `/setup` or **Settings**. Use `.env`
+for deployment-level defaults and secrets you want present before first boot.
+Key settings:
+
+| Variable | Default | Description |
+|---|---|---|
+| `LLM_HOST` | `localhost` | Your LLM server (e.g. `llm-host.local:8000`) |
+| `LLM_HOSTS` | -- | Comma-separated list for model discovery |
+| `OPENAI_API_KEY` | -- | Optional OpenAI key. Prefer adding providers in the app unless pre-seeding. |
+| `SEARXNG_INSTANCE` | `http://localhost:8080` | SearXNG URL. Docker overrides this to `http://searxng:8080`. |
+| `SEARXNG_SECRET` | generated on first Docker boot | Optional SearXNG cookie/CSRF secret. Leave blank unless you need to pin it. |
+| `APP_BIND` | `127.0.0.1` | Docker Compose host bind address for the web UI. Use `0.0.0.0` only for intentional LAN/reverse-proxy access. |
+| `APP_PORT` | `7000` | Docker Compose host port for the web UI. |
+| `AUTH_ENABLED` | `true` | Enable/disable login |
+| `LOCALHOST_BYPASS` | `false` | Development-only auth bypass for loopback requests. Keep false for shared/network deployments. |
+| `SECURE_COOKIES` | `false` | Set true when serving Devante CLI through HTTPS at a trusted proxy or private access gateway. |
+| `DATABASE_URL` | `sqlite:///./data/app.db` | Database connection string |
+| `CHROMADB_HOST` | `localhost` | ChromaDB host for vector memory. Docker overrides this to `chromadb`. |
+| `CHROMADB_PORT` | `8100` | ChromaDB port for manual host runs. Docker overrides this to `8000`. |
+| `EMBEDDING_URL` | -- | OpenAI-compatible embeddings endpoint |
+| `WORKSPACE_HOST_PATH` | `./workspace` | Host folder bind-mounted as `/workspace` in Docker (e.g. your Desktop). **Prometheus Source** |
+| `WORKSPACE_HOST_AGENT_URL` | `http://host.docker.internal:17789` | Windows host agent HTTP (Docker → host). **Prometheus Source · Christopher Bray · YARB Industries LLC** |
+| `WORKSPACE_HOST_AGENT_WS` | `ws://host.docker.internal:17790` | Windows host agent WebSocket terminal |
+| `WORKSPACE_HOST_AGENT_TOKEN` | auto in `.env` | Shared secret; generated by `start.bat` if missing |
+
+### Built-in MCP servers (optional setup)
+
+Devante CLI auto-registers a few built-in MCP servers at startup. The npx-based ones (currently the browser server, `@playwright/mcp`) only start when their npm package is already in the local npx cache. If a package isn't cached, that server is skipped with a startup log message explaining what to do, so a fresh install does not block on a multi-minute npm download or hang if Playwright system deps are missing.
+
+To enable the browser MCP (page navigation, screenshots, vision), run once:
+
+```bash
+npx -y @playwright/mcp@latest --version
+```
+
+That installs `@playwright/mcp` plus Playwright (~300MB total). Restart Devante CLI and the server will register at startup.
+
+## Architecture
+```
+app.py                   # FastAPI entry point
+core/      auth, database, middleware, constants
+src/       llm_core, agent_loop, agent_tools, chat_processor, search/
+routes/    chat, session, document, memory, model … endpoints
+services/  docs, memory, search, hwfit (Cookbook) …
+static/    index.html + app.js + style.css + js/ (modular front-end)
+docs/      landing page (index.html) + preview clips
+
+Prometheus Source (Christopher Bray · YARB Industries LLC):
+  /workspace              # Workspace IDE route
+  workspace/              # Default host mount (override via WORKSPACE_HOST_PATH)
+  routes/workspace_routes.py, routes/terminal_routes.py, routes/host_terminal_routes.py
+  src/workspace_path.py, workspace_dev.py, terminal_manager.py
+  src/host_agent_client.py, host_agent_paths.py, host_terminal_consent.py
+  src/workspace_file_orchestration.py, workspace_analyze_orchestration.py, workspace_index.py
+  static/js/workspaceExplorer.js, workspaceTerminal.js, hostTerminal.js, workspace.js, workspaceSessions.js
+  scripts/windows_host_agent.py, scripts/host_agent_requirements.txt
+  start.bat, start-host-agent.bat, start-native.bat, launch-windows.ps1, launch-docker.ps1, update_windows.bat
+  docs/context-benchmark.md, scripts/benchmark_context.py, scripts/find_max_context.py
+```
+
+## Data
+All user data lives in `data/` (gitignored): `app.db` (sessions, messages, documents),
+`memory.json`, `presets.json`, `uploads/`, `personal_docs/`, `chroma/`, `settings.json`.
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=pewdiepie-archdaemon%2FDevante CLI&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=pewdiepie-archdaemon/Devante CLI&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=pewdiepie-archdaemon/Devante CLI&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=pewdiepie-archdaemon/Devante CLI&type=date&legend=top-left" />
+ </picture>
+</a>
+
+## License
+
+MIT — see [LICENSE](LICENSE) and [ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md).
+
+**Devante CLI (upstream)** is MIT-licensed open source from [pewdiepie-archdaemon/Devante CLI](https://github.com/pewdiepie-archdaemon/Devante CLI). Third-party and adapted components are credited in [ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md).
+
+**Prometheus Source** — the workspace IDE, Windows host terminal, Windows launchers, agent workspace tooling, GPU context benchmark methodology, and related Docker/workspace integration in this repository — is **original work by [Christopher Bray](https://github.com/chrisbraycodes) ([YARB Industries LLC](https://prometheusource.org))**. Learn more at [prometheusource.org](https://prometheusource.org).
+
+```
+                                  |
+                                 |||
+                                |||||
+                  |    |    |   |||||||
+                 )_)  )_)  )_)   ~|~
+                )___))___))___)\  |
+               )____)____)_____)\\|
+             _____|____|____|_____\\\__
+             \                       /
+       ~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~
+               ~^~  all aboard!  ~^~
+       ~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~
+```
