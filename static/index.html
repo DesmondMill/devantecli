@@ -1414,12 +1414,6 @@
             <span>Shortcuts</span>
           </button>
           <div class="settings-sidebar-divider"></div>
-          <div class="settings-sidebar-label">Cloud Services</div>
-          <button class="settings-nav-item" data-settings-tab="cloud">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-            <span>Cloud Services</span>
-          </button>
-          <div class="settings-sidebar-divider"></div>
           <div class="settings-sidebar-label">Advanced</div>
           <button class="settings-nav-item" data-settings-tab="tools">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
@@ -2003,129 +1997,6 @@
           </div>
         </div>
 
-        <!-- ═══ CLOUD SERVICES TAB ═══ -->
-        <div data-settings-panel="cloud" class="hidden">
-          <div class="admin-card">
-            <h2>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;opacity:0.6"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-              Supabase (Database + Auth)
-              <span id="cloud-supabase-status" class="cloud-status-indicator" title="Connection status">●</span>
-            </h2>
-            <div class="admin-toggle-sub" style="margin-bottom:8px">Configure Supabase for PostgreSQL database and authentication. <a href="https://supabase.com/dashboard" target="_blank" class="cloud-setup-link" style="color:var(--accent,var(--red));text-decoration:none;font-weight:600;">Setup Supabase →</a></div>
-            <div class="settings-col">
-              <div class="settings-row">
-                <label class="settings-label">Project URL</label>
-                <input id="cloud-supabase-url" class="settings-select" type="url" placeholder="https://your-project.supabase.co" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Publishable Key (Frontend)</label>
-                <input id="cloud-supabase-publishable-key" class="settings-select" type="password" placeholder="sb_publishable_..." autocomplete="off" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Secret Key (Backend)</label>
-                <input id="cloud-supabase-secret-key" class="settings-select" type="password" placeholder="sb_secret_..." autocomplete="off" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Database URL (Optional)</label>
-                <input id="cloud-supabase-db-url" class="settings-select" type="text" placeholder="postgresql://postgres:[password]@[host]:[port]/postgres" autocomplete="off" />
-              </div>
-              <div class="settings-row">
-                <span id="cloud-supabase-msg" style="font-size:11px;"></span>
-                <button class="admin-btn-add" id="cloud-supabase-test" style="margin-left:auto;">Test Connection</button>
-                <button class="admin-btn-add" id="cloud-supabase-save">Save</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="admin-card">
-            <h2>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;opacity:0.6"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg>
-              Railway (Backend)
-              <span id="cloud-railway-status" class="cloud-status-indicator" title="Connection status">●</span>
-            </h2>
-            <div class="admin-toggle-sub" style="margin-bottom:8px">Configure Railway backend deployment for agent orchestration. <a href="https://railway.app/dashboard" target="_blank" class="cloud-setup-link" style="color:var(--accent,var(--red));text-decoration:none;font-weight:600;">Setup Railway →</a></div>
-            <div class="settings-col">
-              <div class="settings-row">
-                <label class="settings-label">Project ID</label>
-                <input id="cloud-railway-project-id" class="settings-select" type="text" placeholder="abc123-def456-ghi789" autocomplete="off" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Service URL</label>
-                <input id="cloud-railway-url" class="settings-select" type="url" placeholder="https://your-service.up.railway.app" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">API Token</label>
-                <input id="cloud-railway-token" class="settings-select" type="password" placeholder="Railway API token" autocomplete="off" />
-              </div>
-              <div class="settings-row">
-                <span id="cloud-railway-msg" style="font-size:11px;"></span>
-                <button class="admin-btn-add" id="cloud-railway-test" style="margin-left:auto;">Test Connection</button>
-                <button class="admin-btn-add" id="cloud-railway-save">Save</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="admin-card">
-            <h2>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;opacity:0.6"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-              Vercel (Frontend)
-              <span id="cloud-vercel-status" class="cloud-status-indicator" title="Connection status">●</span>
-            </h2>
-            <div class="admin-toggle-sub" style="margin-bottom:8px">Configure Vercel frontend deployment URL. <a href="https://vercel.com/dashboard" target="_blank" class="cloud-setup-link" style="color:var(--accent,var(--red));text-decoration:none;font-weight:600;">Setup Vercel →</a></div>
-            <div class="settings-col">
-              <div class="settings-row">
-                <label class="settings-label">Project URL</label>
-                <input id="cloud-vercel-url" class="settings-select" type="url" placeholder="https://your-app.vercel.app" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Project ID</label>
-                <input id="cloud-vercel-project-id" class="settings-select" type="text" placeholder="prj_abc123def456" autocomplete="off" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Access Token</label>
-                <input id="cloud-vercel-token" class="settings-select" type="password" placeholder="Vercel access token" autocomplete="off" />
-              </div>
-              <div class="settings-row">
-                <span id="cloud-vercel-msg" style="font-size:11px;"></span>
-                <button class="admin-btn-add" id="cloud-vercel-test" style="margin-left:auto;">Test Connection</button>
-                <button class="admin-btn-add" id="cloud-vercel-save">Save</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="admin-card">
-            <h2>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;opacity:0.6"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              Cloudflare R2 (Storage)
-              <span id="cloud-r2-status" class="cloud-status-indicator" title="Connection status">●</span>
-            </h2>
-            <div class="admin-toggle-sub" style="margin-bottom:8px">Configure Cloudflare R2 for file storage. <a href="https://dash.cloudflare.com/" target="_blank" class="cloud-setup-link" style="color:var(--accent,var(--red));text-decoration:none;font-weight:600;">Setup R2 →</a></div>
-            <div class="settings-col">
-              <div class="settings-row">
-                <label class="settings-label">Account ID</label>
-                <input id="cloud-r2-account-id" class="settings-select" type="text" placeholder="Cloudflare account ID" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Access Key ID</label>
-                <input id="cloud-r2-access-key" class="settings-select" type="password" placeholder="R2 Access Key ID" autocomplete="off" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Secret Access Key</label>
-                <input id="cloud-r2-secret-key" class="settings-select" type="password" placeholder="R2 Secret Access Key" autocomplete="off" />
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Bucket Name</label>
-                <input id="cloud-r2-bucket" class="settings-select" type="text" placeholder="devante-cli-storage" />
-              </div>
-              <div class="settings-row">
-                <span id="cloud-r2-msg" style="font-size:11px;"></span>
-                <button class="admin-btn-add" id="cloud-r2-test" style="margin-left:auto;">Test Connection</button>
-                <button class="admin-btn-add" id="cloud-r2-save">Save</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- ═══ SERVICES TAB ═══ -->
         <div data-settings-panel="services">
           <div class="admin-card">
@@ -2406,7 +2277,6 @@
 <script type="module" src="/static/js/assistant.js"></script>
 <script type="module" src="/static/js/ideLayoutMode.js"></script>
 <script type="module" src="/static/js/wsMobilePanels.js?v=20260614f"></script>
-<script type="module" src="/static/js/cloud-services.js"></script>
 <script type="module" src="/static/app.js"></script>  <!-- app.js must be LAST -->
 <script type="module" src="/static/js/init.js"></script>
 <script type="module" src="/static/js/a11y.js"></script>

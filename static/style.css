@@ -5798,40 +5798,6 @@ body.bg-pattern-sparkles {
       pointer-events: none;
     }
 
-    /* Cloud Services Status Indicators */
-    .cloud-status-indicator {
-      margin-left: auto;
-      font-size: 16px;
-      color: var(--border);
-      transition: color 0.3s ease;
-    }
-    .cloud-status-indicator.status-success {
-      color: #4ade80;
-    }
-    .cloud-status-indicator.status-error {
-      color: #ef4444;
-    }
-    .cloud-status-indicator.status-testing {
-      color: #fbbf24;
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    /* Cloud Setup Links */
-    .cloud-setup-link {
-      margin-left: 8px;
-      font-size: 0.85em;
-      opacity: 0.8;
-      transition: opacity 0.2s ease;
-    }
-    .cloud-setup-link:hover {
-      opacity: 1;
-      text-decoration: underline;
-    }
-
     /* Generated images inside chat bubbles */
     .msg.generated-image-wrap .body { text-align: center; }
     .generated-image {

@@ -270,10 +270,6 @@ webhook_manager = WebhookManager(api_key_manager=api_key_manager)
 from routes.config_routes import setup_config_routes
 app.include_router(setup_config_routes())
 
-# Cloud services (Supabase, Railway, etc.)
-from routes.cloud_routes import setup_cloud_routes
-app.include_router(setup_cloud_routes())
-
 # Uploads
 from routes.upload_routes import setup_upload_routes
 upload_router, upload_cleanup_func = setup_upload_routes(upload_handler)

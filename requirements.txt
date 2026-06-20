@@ -40,8 +40,6 @@ cryptography
 bcrypt
 mcp
 pyotp
-supabase
-psycopg2-binary
 qrcode[pil]
 croniter
 pytest
