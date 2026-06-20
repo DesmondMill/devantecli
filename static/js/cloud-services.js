@@ -5,7 +5,6 @@
  * - Railway (Backend)
  * - Vercel (Frontend)
  * - Cloudflare R2 (Storage)
- * - Ollama (Local AI Models)
  */
 
 class CloudServicesManager {
@@ -36,15 +35,9 @@ class CloudServicesManager {
         secretKey: '',
         bucket: '',
         status: 'unknown'
-      },
-      ollama: {
-        url: '',
-        models: '',
-        defaultModel: '',
-        status: 'unknown'
       }
     };
-    
+
     this.init();
   }
   
@@ -99,10 +92,6 @@ class CloudServicesManager {
     document.getElementById('cloud-r2-access-key').value = this.services.r2.accessKey || '';
     document.getElementById('cloud-r2-secret-key').value = this.services.r2.secretKey || '';
     document.getElementById('cloud-r2-bucket').value = this.services.r2.bucket || '';
-    
-    document.getElementById('cloud-ollama-url').value = this.services.ollama.url || '';
-    document.getElementById('cloud-ollama-models').value = this.services.ollama.models || '';
-    document.getElementById('cloud-ollama-default-model').value = this.services.ollama.defaultModel || '';
   }
   
   bindEvents() {
@@ -164,21 +153,8 @@ class CloudServicesManager {
         e.stopPropagation();
         this.saveR2();
       }
-      
-      // Ollama events
-      else if (target.id === 'cloud-ollama-test') {
-        console.log('Ollama test button clicked');
-        e.preventDefault();
-        e.stopPropagation();
-        this.testOllama();
-      } else if (target.id === 'cloud-ollama-save') {
-        console.log('Ollama save button clicked');
-        e.preventDefault();
-        e.stopPropagation();
-        this.saveOllama();
-      }
     });
-    
+
     console.log('Cloud services events bound successfully');
   }
   
@@ -418,41 +394,85 @@ class CloudServicesManager {
   // Vercel testing
   async testVercel() {
     const url = document.getElementById('cloud-vercel-url').value;
-    
+    const token = document.getElementById('cloud-vercel-token').value;
+
     if (!url) {
       this.showMessage('vercel', 'Please enter Vercel URL', true);
       return;
     }
-    
+
     this.updateStatusIndicator('vercel', 'testing');
     this.showMessage('vercel', 'Testing connection...');
-    
+
     try {
-      const response = await fetch(url, {
-        method: 'HEAD'
+      // Use backend API to test connection
+      const response = await fetch('/api/cloud/vercel/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          url: url,
+          token: token
+        })
       });
-      
-      if (response.ok) {
+
+      const result = await response.json();
+      console.log('Backend test result:', result);
+
+      if (result.ok) {
         this.services.vercel.status = 'success';
-        this.showMessage('vercel', '✓ Connection successful');
+        this.showMessage('vercel', `✓ ${result.message}`);
       } else {
         this.services.vercel.status = 'error';
-        this.showMessage('vercel', `✗ Connection failed: ${response.status}`, true);
+        this.showMessage('vercel', `✗ ${result.message}`, true);
       }
     } catch (error) {
+      console.error('Vercel connection error:', error);
       this.services.vercel.status = 'error';
       this.showMessage('vercel', `✗ Connection error: ${error.message}`, true);
     }
-    
+
     this.updateStatusIndicator('vercel', this.services.vercel.status);
   }
-  
-  saveVercel() {
-    this.services.vercel.url = document.getElementById('cloud-vercel-url').value;
-    this.services.vercel.projectId = document.getElementById('cloud-vercel-project-id').value;
-    this.services.vercel.token = document.getElementById('cloud-vercel-token').value;
-    this.saveSettings();
-    this.showMessage('vercel', '✓ Settings saved');
+
+  async saveVercel() {
+    console.log('Saving Vercel settings...');
+    try {
+      const url = document.getElementById('cloud-vercel-url').value;
+      const projectId = document.getElementById('cloud-vercel-project-id').value;
+      const token = document.getElementById('cloud-vercel-token').value;
+
+      this.services.vercel.url = url;
+      this.services.vercel.projectId = projectId;
+      this.services.vercel.token = token;
+
+      // Call backend API to configure
+      const response = await fetch('/api/cloud/vercel/configure', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          url: url,
+          projectId: projectId,
+          token: token
+        })
+      });
+
+      const result = await response.json();
+      console.log('Backend configure result:', result);
+
+      if (result.ok) {
+        this.saveSettings(); // Still save to localStorage as backup
+        this.showMessage('vercel', `✓ ${result.message}`);
+      } else {
+        this.showMessage('vercel', `✗ ${result.message}`, true);
+      }
+    } catch (error) {
+      console.error('Error saving Vercel settings:', error);
+      this.showMessage('vercel', `✗ Error: ${error.message}`, true);
+    }
   }
   
   // R2 testing
@@ -461,86 +481,89 @@ class CloudServicesManager {
     const accessKey = document.getElementById('cloud-r2-access-key').value;
     const secretKey = document.getElementById('cloud-r2-secret-key').value;
     const bucket = document.getElementById('cloud-r2-bucket').value;
-    
+
     if (!accountId || !accessKey || !secretKey || !bucket) {
       this.showMessage('r2', 'Please enter all R2 credentials', true);
       return;
     }
-    
+
     this.updateStatusIndicator('r2', 'testing');
     this.showMessage('r2', 'Testing connection...');
-    
+
     try {
-      // Test R2 connection by attempting to list buckets
-      const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
-      const response = await fetch(`${endpoint}/${bucket}`, {
-        method: 'HEAD',
+      // Use backend API to test connection
+      const response = await fetch('/api/cloud/r2/test', {
+        method: 'POST',
         headers: {
-          'Authorization': `AWS4-HMAC-SHA256 Credential=${accessKey}`
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          accountId: accountId,
+          accessKey: accessKey,
+          secretKey: secretKey,
+          bucket: bucket
+        })
       });
-      
-      if (response.ok || response.status === 404) { // 404 means bucket exists but is empty
+
+      const result = await response.json();
+      console.log('Backend test result:', result);
+
+      if (result.ok) {
         this.services.r2.status = 'success';
-        this.showMessage('r2', '✓ Connection successful');
+        this.showMessage('r2', `✓ ${result.message}`);
       } else {
         this.services.r2.status = 'error';
-        this.showMessage('r2', `✗ Connection failed: ${response.status}`, true);
+        this.showMessage('r2', `✗ ${result.message}`, true);
       }
     } catch (error) {
+      console.error('R2 connection error:', error);
       this.services.r2.status = 'error';
       this.showMessage('r2', `✗ Connection error: ${error.message}`, true);
     }
-    
+
     this.updateStatusIndicator('r2', this.services.r2.status);
   }
-  
-  saveR2() {
-    this.services.r2.accountId = document.getElementById('cloud-r2-account-id').value;
-    this.services.r2.accessKey = document.getElementById('cloud-r2-access-key').value;
-    this.services.r2.secretKey = document.getElementById('cloud-r2-secret-key').value;
-    this.services.r2.bucket = document.getElementById('cloud-r2-bucket').value;
-    this.saveSettings();
-    this.showMessage('r2', '✓ Settings saved');
-  }
-  
-  // Ollama testing
-  async testOllama() {
-    const url = document.getElementById('cloud-ollama-url').value;
-    
-    if (!url) {
-      this.showMessage('ollama', 'Please enter Ollama URL', true);
-      return;
-    }
-    
-    this.updateStatusIndicator('ollama', 'testing');
-    this.showMessage('ollama', 'Testing connection...');
-    
+
+  async saveR2() {
+    console.log('Saving R2 settings...');
     try {
-      const response = await fetch(`${url}/api/tags`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        this.services.ollama.status = 'success';
-        this.showMessage('ollama', `✓ Connection successful (${data.models?.length || 0} models available)`);
+      const accountId = document.getElementById('cloud-r2-account-id').value;
+      const accessKey = document.getElementById('cloud-r2-access-key').value;
+      const secretKey = document.getElementById('cloud-r2-secret-key').value;
+      const bucket = document.getElementById('cloud-r2-bucket').value;
+
+      this.services.r2.accountId = accountId;
+      this.services.r2.accessKey = accessKey;
+      this.services.r2.secretKey = secretKey;
+      this.services.r2.bucket = bucket;
+
+      // Call backend API to configure
+      const response = await fetch('/api/cloud/r2/configure', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          accountId: accountId,
+          accessKey: accessKey,
+          secretKey: secretKey,
+          bucket: bucket
+        })
+      });
+
+      const result = await response.json();
+      console.log('Backend configure result:', result);
+
+      if (result.ok) {
+        this.saveSettings(); // Still save to localStorage as backup
+        this.showMessage('r2', `✓ ${result.message}`);
       } else {
-        this.services.ollama.status = 'error';
-        this.showMessage('ollama', `✗ Connection failed: ${response.status}`, true);
+        this.showMessage('r2', `✗ ${result.message}`, true);
       }
     } catch (error) {
-      this.services.ollama.status = 'error';
-      this.showMessage('ollama', `✗ Connection error: ${error.message}`, true);
+      console.error('Error saving R2 settings:', error);
+      this.showMessage('r2', `✗ Error: ${error.message}`, true);
     }
-    
-    this.updateStatusIndicator('ollama', this.services.ollama.status);
-  }
-  
-  saveOllama() {
-    this.services.ollama.url = document.getElementById('cloud-ollama-url').value;
-    this.services.ollama.models = document.getElementById('cloud-ollama-models').value;
-    this.services.ollama.defaultModel = document.getElementById('cloud-ollama-default-model').value;
-    this.saveSettings();
-    this.showMessage('ollama', '✓ Settings saved');
   }
 }
 

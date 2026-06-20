@@ -30,18 +30,24 @@ class TimestampMixin:
         return Column(DateTime, default=utcnow_naive, onupdate=utcnow_naive, nullable=False)
 
 # Get database URL from environment, default to SQLite
-# Check if Supabase is configured and use its database URL
-_database_url = os.getenv("DATABASE_URL", "")
-if not _database_url or "sqlite" in _database_url:
-    # Try to use Supabase database URL if configured
+# DATABASE_URL takes precedence - if set, use it regardless of other variables
+_database_url = os.getenv("DATABASE_URL", "").strip()
+
+if _database_url:
+    # Use the explicitly set DATABASE_URL
+    DATABASE_URL = _database_url
+    logger.info(f"Using explicitly set DATABASE_URL: {'postgresql' if 'postgresql' in DATABASE_URL else 'sqlite'}")
+else:
+    # No DATABASE_URL set, check for Supabase configuration
     supabase_url = os.getenv("SUPABASE_URL", "").strip()
     supabase_db = os.getenv("SUPABASE_DB_URL", "").strip()
+
     if supabase_db:
         DATABASE_URL = supabase_db
+        logger.info("Using Supabase database URL from SUPABASE_DB_URL")
     elif supabase_url and "supabase.co" in supabase_url:
         # Construct database URL from Supabase project URL
         project_ref = supabase_url.replace("https://", "").replace(".supabase.co", "")
-        # Note: User needs to provide the actual password via SUPABASE_DB_PASSWORD
         db_password = os.getenv("SUPABASE_DB_PASSWORD", "").strip()
         if db_password:
             DATABASE_URL = f"postgresql://postgres:{db_password}@db.{project_ref}.supabase.co:5432/postgres"
@@ -51,8 +57,7 @@ if not _database_url or "sqlite" in _database_url:
             logger.warning("Supabase URL configured but no database password - falling back to SQLite")
     else:
         DATABASE_URL = "sqlite:///./data/app.db"
-else:
-    DATABASE_URL = _database_url
+        logger.info("No database configuration found - using SQLite")
 
 # Create engine
 engine = create_engine(
