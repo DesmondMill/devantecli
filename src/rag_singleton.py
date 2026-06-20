@@ -29,6 +29,11 @@ def get_rag_manager():
     """
     global rag_instance, _last_attempt
 
+    # Check if ChromaDB is explicitly disabled
+    if os.getenv("DISABLE_CHROMADB", "").lower() in ("true", "1", "yes"):
+        logger.info("ChromaDB disabled via DISABLE_CHROMADB environment variable")
+        return None
+
     if rag_instance is not None:
         return rag_instance
 
