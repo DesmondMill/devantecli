@@ -1,0 +1,13 @@
+specVersion: "v1"
+serviceId: "devante-ide-service"
+location: "us-central1"
+schemas:
+  - source: "./schema"
+    datasource:
+      postgresql:
+        database: "devante-ide-database"
+        cloudSql:
+          instanceId: "devante-ide-instance"
+          # schemaValidation: "STRICT"     # STRICT mode makes Postgres schema match Data Connect exactly.
+          # schemaValidation: "COMPATIBLE" # COMPATIBLE mode makes Postgres schema compatible with Data Connect.
+connectorDirs: ["./example"]
